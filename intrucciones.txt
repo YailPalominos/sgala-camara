@@ -1,0 +1,5 @@
+
+
+Correr el programa
+
+> python3 camara.py
