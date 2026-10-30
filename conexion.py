@@ -692,8 +692,41 @@ def procesar_paquete(cliente):
                 "datos": configuracion
             })
 
+
+        elif operacion == "obtener-grabaciones":
+            fecha = datos_solicitud.get("fecha")
+
+            if not isinstance(fecha, str):
+                raise ValueError("La fecha solicitada es obligatoria.")
+
+            import camara
+
+            cola_respuesta = camara.solicitar_busqueda_grabacion(fecha)
+
+            try:
+                resultado = cola_respuesta.get(timeout=15)
+            except queue.Empty as error:
+                raise TimeoutError(
+                    "Tiempo agotado buscando la grabacion."
+                ) from error
+
+            responder(cliente, topic_respuesta, resultado)
+
+        elif operacion == "detener-grabacion-historica":
+            import camara
+
+            cola_respuesta = camara.solicitar_detencion_historica()
+
+            try:
+                resultado = cola_respuesta.get(timeout=10)
+            except queue.Empty as error:
+                raise TimeoutError(
+                    "Tiempo agotado deteniendo la reproduccion historica."
+                ) from error
+
+            responder(cliente, topic_respuesta, resultado)
+
         elif operacion == "actualizar-configuracion":
-            print(datos_solicitud)
             actualizar_configuracion(datos_solicitud)
 
             responder(cliente, topic_respuesta, {
